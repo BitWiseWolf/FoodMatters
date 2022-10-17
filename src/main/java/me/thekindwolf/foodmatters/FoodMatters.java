@@ -6,13 +6,16 @@ import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import com.sk89q.worldguard.session.SessionManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import static org.bukkit.Bukkit.getScheduler;
 
 public final class FoodMatters extends JavaPlugin {
     //config variables, init a config
@@ -22,7 +25,7 @@ public final class FoodMatters extends JavaPlugin {
     {
         plugin = this;
     }
-
+    Plugin myPlugin = this;
     public int taskId;
     FileConfiguration config = getConfig();
 
@@ -50,7 +53,7 @@ public final class FoodMatters extends JavaPlugin {
             } else {
                 // types don't match - this is bad news! some other plugin conflicts with you
                 // hopefully this never actually happens
-                System.out.println("The bad thing happened OH NO check FoodMatters");
+                System.out.println("The bad thing happened types don't match OH NO check FoodMatters");
             }
         }
     }
@@ -62,9 +65,12 @@ public final class FoodMatters extends JavaPlugin {
         //create the config
         this.saveDefaultConfig();
 
-        // second param allows for ordering of handlers - see the JavaDocs
-        SessionManager sessionManager = WorldGuard.getInstance().getPlatform().getSessionManager();
-        sessionManager.registerHandler(FoodMattersFlag.FACTORY, null);
+        //Food timer start
+        taskId = getScheduler().scheduleSyncRepeatingTask(this, new FoodSubtract(exhaustionIncrement), 0, exhaustionInterval);
+
+        //Register commands
+        //getServer().getPluginCommand("fmreload").setExecutor(new (this));
+
     }
 
     @Override
@@ -96,15 +102,16 @@ public final class FoodMatters extends JavaPlugin {
                 {
                     //reload the config
                     this.reloadConfig();
-                    config = getConfig();
+                    FileConfiguration newConfig = getConfig();
+                    exhaustionInterval = newConfig.getInt("exhaustionInterval");
+                    exhaustionIncrement = (float)newConfig.getDouble("exhaustionIncrement");
                     this.saveDefaultConfig();
+
+                    getScheduler().cancelTask(taskId);
+                    taskId = getScheduler().scheduleSyncRepeatingTask(myPlugin, new FoodSubtract(exhaustionIncrement), 0, exhaustionInterval);
 
                     //Let the player know that the plugin is reloaded
                     player.sendMessage(ChatColor.GREEN + "Plugin reloaded!");
-                    SessionManager sessionManager = WorldGuard.getInstance().getPlatform().getSessionManager();
-                    sessionManager.unregisterHandler(FoodMattersFlag.FACTORY);
-                    // second param allows for ordering of handlers - see the JavaDocs
-                    sessionManager.registerHandler(FoodMattersFlag.FACTORY, null);
                 }
                 else
                 {

@@ -44,41 +44,4 @@ public class FoodMattersFlag extends Handler {
     {
         this.foodMattersFlag = foodMattersFlag;
     }
-
-    @Override
-    public void initialize(LocalPlayer player, Location current, ApplicableRegionSet set)
-    {
-        FoodMatters.getPlugin().reloadConfig();
-        config = FoodMatters.getPlugin().getConfig();
-        FoodMatters.getPlugin().saveDefaultConfig();
-        exhaustionInterval = config.getInt("exhaustionInterval");
-        exhaustionIncrement = (float)config.getDouble("exhaustionIncrement");
-    }
-
-    @Override
-    public void tick(LocalPlayer player, ApplicableRegionSet set)
-    {
-        //get the time
-        long now = System.currentTimeMillis();
-
-        boolean flagActive = set.testState(player, FoodMatters.FOOD_MATTERS_FLAG);
-
-        if(flagActive)
-        {
-            if(now - lastFoodSubtract > exhaustionInterval * 1000)
-            {
-                //Food Subtract logic
-                //get the player's current exhaustion
-                float currentExhaustion = player.getExhaustion();
-                player.setExhaustion(currentExhaustion + exhaustionIncrement);
-                //set the currentFoodLevel again for checking to see if the number is busted.
-                currentExhaustion = player.getExhaustion();
-                lastFoodSubtract = now;
-            }
-        }
-        else
-        {
-            player.setFoodLevel(20);
-        }
-    }
 }
