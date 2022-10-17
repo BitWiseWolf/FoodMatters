@@ -4,6 +4,7 @@ main: me.thekindwolf.foodmatters.FoodMatters
 api-version: 1.18
 authors: [ TheKindWolf ]
 description: Makes food always drain and matter
+depend: [WorldGuard]
 commands:
   fmreload:
     description: reloads the config.yml file.
